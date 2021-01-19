@@ -10,12 +10,19 @@ import time
 
 import networkx as nx
 import wikipedia
-#from gensim.summarization import keywords
+
+
+# from gensim.summarization import keywords
 
 
 def create_graph(theme, depth, breadth, rootBreadthMultiplier):
     # This function creates and builds the graph
-    root = wikipedia.WikipediaPage(theme)
+    try:
+        root = wikipedia.WikipediaPage(theme)
+    except:  # wikipedia.DisambiguationError and wikipedia.exceptions.PageError
+        print("Root node ERROR!")
+        return
+
     G = nx.DiGraph()
     G.add_node(root.title)
 
@@ -23,32 +30,40 @@ def create_graph(theme, depth, breadth, rootBreadthMultiplier):
         # Calculate child nodes
         childNodesList = []
 
+        # Count how many times every link appers in the page content and sort
         counts = {}
         for i in root.links:
             searchString = i
-            if(i.endswith(" music")):
-                searchString = searchString.removesuffix(" music")
+            if (i.endswith(" music")):                              # sometimes a link appears in the page`s content
+                searchString = searchString.removesuffix(" music")  # without the suffix " music"
+
+            if (i.endswith(" (American Band)")):
+                searchString = searchString.removesuffix(" (American Band)")
+
+            if (i.endswith(" (Band)")):
+                searchString = searchString.removesuffix(" (Band)")
 
             counts[i] = root.content.lower().count(searchString.lower())
         counts = {k: v for k, v in sorted(counts.items(), key=lambda item: item[1], reverse=True)}
 
-        #
-        # key = keywords(root.content,split=True)
-        # print("what")
-        # keyl = keywords(root.content,split=True, lemmatize=True)
-        fet = 5
-        sfet = 5
+        # Links that appear most often are added in the child nodes list
         for k in counts:
             childNodesList.append(k)
             if len(childNodesList) > rootBreadthMultiplier * breadth:
                 break
 
+        # nodesDict keys are the nodes` title
+        # nodesDict values are the depth that every node was added
+        # it is used to prevent visiting a node again
+        # depth is necessary because if a node was already visited but at a bigger depth, it should be revisited
+        nodesDict = {}
+        nodesDict[root.title] = 0
         for i in childNodesList:
-            build_graph(G, depth, breadth, i, 1, root.title)
+            build_graph(G, depth, breadth, i, 1, root.title, nodesDict)
     return G
 
 
-def build_graph(G, depth, breadth, node, current_depth, parentTitle):
+def build_graph(G, depth, breadth, node, current_depth, parentTitle, nodesDict):
     # Find page "node"
     try:
         node = wikipedia.WikipediaPage(node)
@@ -56,21 +71,22 @@ def build_graph(G, depth, breadth, node, current_depth, parentTitle):
         return
     G.add_node(node.title)
     G.add_edge(parentTitle, node.title)
-    if node.title == "Deep Purple":
-        fet = 5
-    fet2 = 6
+    nodesDict[node.title] = current_depth
 
     if (depth >= current_depth + 1):
         # Calculate child nodes
         childNodesList = []
 
+         # Count how many times every link appers in the page content and sort
         counts = {}
         for i in node.links:
             searchString = i
-            if(i.endswith(" music")):
-                 searchString = searchString.removesuffix(" music")
+            if (i.endswith(" music")):
+                searchString = searchString.removesuffix(" music")
             counts[i] = node.content.lower().count(searchString.lower())
         counts = {k: v for k, v in sorted(counts.items(), key=lambda item: item[1], reverse=True)}
+
+        # Links that appear most often are added in the child nodes list
         for k in counts:
             childNodesList.append(k)
             if (len(childNodesList) >= breadth):
@@ -79,25 +95,30 @@ def build_graph(G, depth, breadth, node, current_depth, parentTitle):
         # Build the next level of the graph
         for i in childNodesList:
             if i not in G.nodes:
-                build_graph(G, depth, breadth, i, current_depth + 1, node.title)
+                build_graph(G, depth, breadth - 1, i, current_depth + 1, node.title, nodesDict)
             else:
-                G.add_edge(node.title, i)
-    fet = 5
+                if nodesDict[i] > current_depth + 1:
+                    # Revisit node
+                    build_graph(G, depth, breadth - 1, i, current_depth + 1, node.title, nodesDict)
+                else:
+                    G.add_edge(node.title, i)
 
 
-print('Network Theory')
-theme = "Heavy metal music"
-depth = 4
-breadth = 7
-rootBreadthMultiplier = 4
+if __name__ == "__main__":
+    print('Network Theory Project:\nCreate Graph')
+    theme = "Heavy metal music"
+    print(f"Theme: {theme}")
+    depth = 3
+    breadth = 8
+    rootBreadthMultiplier = 7
 
-start = time.perf_counter()
-G = create_graph(theme, depth, breadth, rootBreadthMultiplier)
-end = time.perf_counter()
+    start = time.perf_counter()
+    G = create_graph(theme, depth, breadth, rootBreadthMultiplier)
+    end = time.perf_counter()
 
-print(end - start)
+    print(f"Execution time = {end - start}")
 
-debug = True
-# plt.show()
-#nx.write_gexf(G,"HeavyMetal476.gexf")
-#nx.write_gml(G, "HeavyMetal477.gml")
+    debug = True
+    # plt.show()
+    # nx.write_gexf(G,"HeavyMetal476.gexf")
+    nx.write_gml(G,theme.replace(" ","") + ".gml" )
