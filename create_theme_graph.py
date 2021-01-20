@@ -12,9 +12,6 @@ import networkx as nx
 import wikipedia
 
 
-# from gensim.summarization import keywords
-
-
 def create_graph(theme, depth, breadth, rootBreadthMultiplier):
     # This function creates and builds the graph
     try:
@@ -34,14 +31,14 @@ def create_graph(theme, depth, breadth, rootBreadthMultiplier):
         counts = {}
         for i in root.links:
             searchString = i
-            if (i.endswith(" music")):                              # sometimes a link appears in the page`s content
+            if (i.endswith(" music")):  # sometimes a link appears in the page`s content
                 searchString = searchString.removesuffix(" music")  # without the suffix " music"
 
-            if (i.endswith(" (American Band)")):
-                searchString = searchString.removesuffix(" (American Band)")
-
-            if (i.endswith(" (Band)")):
-                searchString = searchString.removesuffix(" (Band)")
+            # if (i.endswith(" (American Band)")):
+            #     searchString = searchString.removesuffix(" (American Band)")
+            #
+            # if (i.endswith(" (Band)")):
+            #     searchString = searchString.removesuffix(" (Band)")
 
             counts[i] = root.content.lower().count(searchString.lower())
         counts = {k: v for k, v in sorted(counts.items(), key=lambda item: item[1], reverse=True)}
@@ -59,11 +56,11 @@ def create_graph(theme, depth, breadth, rootBreadthMultiplier):
         nodesDict = {}
         nodesDict[root.title] = 0
         for i in childNodesList:
-            build_graph(G, depth, breadth, i, 1, root.title, nodesDict)
+            build_graph(G, depth, breadth, i, 1, root.title, nodesDict, theme)
     return G
 
 
-def build_graph(G, depth, breadth, node, current_depth, parentTitle, nodesDict):
+def build_graph(G, depth, breadth, node, current_depth, parentTitle, nodesDict, theme):
     # Find page "node"
     try:
         node = wikipedia.WikipediaPage(node)
@@ -74,10 +71,13 @@ def build_graph(G, depth, breadth, node, current_depth, parentTitle, nodesDict):
     nodesDict[node.title] = current_depth
 
     if (depth >= current_depth + 1):
+        if (theme not in node.links):  # If the theme is not in links list, return
+            return
+
         # Calculate child nodes
         childNodesList = []
 
-         # Count how many times every link appers in the page content and sort
+        # Count how many times every link appers in the page content and sort
         counts = {}
         for i in node.links:
             searchString = i
@@ -95,11 +95,11 @@ def build_graph(G, depth, breadth, node, current_depth, parentTitle, nodesDict):
         # Build the next level of the graph
         for i in childNodesList:
             if i not in G.nodes:
-                build_graph(G, depth, breadth - 1, i, current_depth + 1, node.title, nodesDict)
+                build_graph(G, depth, breadth - 1, i, current_depth + 1, node.title, nodesDict, theme)
             else:
                 if nodesDict[i] > current_depth + 1:
                     # Revisit node
-                    build_graph(G, depth, breadth - 1, i, current_depth + 1, node.title, nodesDict)
+                    build_graph(G, depth, breadth - 1, i, current_depth + 1, node.title, nodesDict, theme)
                 else:
                     G.add_edge(node.title, i)
 
@@ -108,9 +108,12 @@ if __name__ == "__main__":
     print('Network Theory Project:\nCreate Graph')
     theme = "Heavy metal music"
     print(f"Theme: {theme}")
-    depth = 3
-    breadth = 8
-    rootBreadthMultiplier = 7
+    depth = 4
+    print(depth)
+    breadth = 10
+    print(breadth)
+    rootBreadthMultiplier = 5
+    print(rootBreadthMultiplier)
 
     start = time.perf_counter()
     G = create_graph(theme, depth, breadth, rootBreadthMultiplier)
@@ -118,7 +121,7 @@ if __name__ == "__main__":
 
     print(f"Execution time = {end - start}")
 
-    debug = True
     # plt.show()
     # nx.write_gexf(G,"HeavyMetal476.gexf")
-    nx.write_gml(G,theme.replace(" ","") + ".gml" )
+    nx.write_gml(G, theme.replace(" ", "") + ".gml")
+    # 4,7,6 411,887 kalo

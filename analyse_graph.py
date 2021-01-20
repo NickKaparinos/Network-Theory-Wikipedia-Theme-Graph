@@ -9,36 +9,36 @@ import time
 import matplotlib.pyplot as plt
 import networkx as nx
 import seaborn as sns
+
 plt.ion()
 
 if __name__ == "__main__":
     print("Network Theory Project:\nAnalyse Graph")
-    #G = nx.read_gml("Heavymetalmusic.gml")
-    G = nx.read_gml("HeavyMetal387DictM.gml")
-
     start = time.perf_counter()
 
+    G = nx.read_gml("Heavymetalmusic.gml")
+    # G = nx.read_gml("HeavyMetal387DictM.gml")
 
     ### Anlyse Graph ###
 
     # Metrics
     if nx.is_weakly_connected(G):
-        #Gundirected = nx.to_undirected(G)
-        Gundirected = G
-        print("undirected")
-        #center = nx.center(Gundirected)
-        #eccentricity = nx.eccentricity(Gundirected)
-        #diameter = nx.diameter(Gundirected)
+        Gundirected = nx.to_undirected(G)
+        center = nx.center(Gundirected)
+        eccentricity = nx.eccentricity(Gundirected)
+        diameter = nx.diameter(Gundirected)
         radius = nx.radius(Gundirected)
+
+        # Average shortest path length
+        averageShortestPath = nx.average_shortest_path_length(G)
     else:
         center = nx.center(G)
         eccentricity = nx.eccentricity(G)
         diameter = nx.diameter(G)
         radius = nx.radius(G)
 
-
-    # Average shortest path length
-    averageShortestPath = nx.average_shortest_path_length(G)
+        # Average shortest path length
+        averageShortestPath = nx.average_shortest_path_length(G)
 
     # Transivity
     transivity = nx.transitivity(G)
@@ -101,8 +101,10 @@ if __name__ == "__main__":
     plt.title("Node out degree distribution")
     plt.xlabel("Node out degree")
     # Gather dictionaries in a list and sort them on values
-    listOfDicts = [closenessCentrality, betweensCentrality, katzCentrality, eigenCentrality, pageRank, authorities, hubs]
-    dictNames = ["Closeness Centrality", "Betweens Centrality", "Katz Centrality", "Eigenvector Centrality", "Page Rank",
+    listOfDicts = [closenessCentrality, betweensCentrality, katzCentrality, eigenCentrality, pageRank, authorities,
+                   hubs]
+    dictNames = ["Closeness Centrality", "Betweens Centrality", "Katz Centrality", "Eigenvector Centrality",
+                 "Page Rank",
                  "Authorities", "Hubs"]
 
     listOfDicts = [{k: v for k, v in sorted(i.items(), key=lambda item: item[1], reverse=True)} for i in listOfDicts]
