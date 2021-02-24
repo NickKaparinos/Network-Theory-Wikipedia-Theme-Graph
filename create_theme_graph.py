@@ -3,7 +3,7 @@
 # Nick Kaparinos
 # 2020
 
-# The purpose of this script is to create and save a graph of wikipedia pages of a certain theme
+# The purpose of this script is to create and save a theme graph of wikipedia pages 
 # The theme of the graph is given in the string theme
 
 import time
@@ -27,18 +27,12 @@ def create_graph(theme, depth, breadth, rootBreadthMultiplier):
         # Calculate child nodes
         childNodesList = []
 
-        # Count how many times every link appers in the page content and sort
+        # Count how many times every link appears in the page content and sort
         counts = {}
         for i in root.links:
             searchString = i
             if (i.endswith(" music")):  # sometimes a link appears in the page`s content
                 searchString = searchString.removesuffix(" music")  # without the suffix " music"
-
-            # if (i.endswith(" (American Band)")):
-            #     searchString = searchString.removesuffix(" (American Band)")
-            #
-            # if (i.endswith(" (Band)")):
-            #     searchString = searchString.removesuffix(" (Band)")
 
             counts[i] = root.content.lower().count(searchString.lower())
         counts = {k: v for k, v in sorted(counts.items(), key=lambda item: item[1], reverse=True)}
@@ -49,10 +43,10 @@ def create_graph(theme, depth, breadth, rootBreadthMultiplier):
             if len(childNodesList) > rootBreadthMultiplier * breadth:
                 break
 
-        # nodesDict keys are the nodes` title
+        # nodesDict keys are the nodes` titles
         # nodesDict values are the depth that every node was added
         # it is used to prevent visiting a node again
-        # depth is necessary because if a node was already visited but at a bigger depth, it should be revisited
+        # depth should be saved because if a node was already visited but at a bigger depth, it should be revisited
         nodesDict = {}
         nodesDict[root.title] = 0
         for i in childNodesList:
@@ -77,7 +71,7 @@ def build_graph(G, depth, breadth, node, current_depth, parentTitle, nodesDict, 
         # Calculate child nodes
         childNodesList = []
 
-        # Count how many times every link appers in the page content and sort
+        # Count how many times every link appears in the page content and sort
         counts = {}
         for i in node.links:
             searchString = i
@@ -108,20 +102,13 @@ if __name__ == "__main__":
     print('Network Theory Project:\nCreate Graph')
     theme = "Heavy metal music"
     print(f"Theme: {theme}")
-    depth = 4
-    print(depth)
-    breadth = 10
-    print(breadth)
+    depth = 5
+    breadth = 8
     rootBreadthMultiplier = 5
-    print(rootBreadthMultiplier)
 
     start = time.perf_counter()
     G = create_graph(theme, depth, breadth, rootBreadthMultiplier)
-    end = time.perf_counter()
 
-    print(f"Execution time = {end - start}")
+    print(f"Execution time = {time.perf_counter() - start:.2f} second(s)")
 
-    # plt.show()
-    # nx.write_gexf(G,"HeavyMetal476.gexf")
     nx.write_gml(G, theme.replace(" ", "") + ".gml")
-    # 4,7,6 411,887 kalo

@@ -17,7 +17,6 @@ if __name__ == "__main__":
     start = time.perf_counter()
 
     G = nx.read_gml("Heavymetalmusic.gml")
-    # G = nx.read_gml("HeavyMetal387DictM.gml")
 
     ### Anlyse Graph ###
 
@@ -30,7 +29,7 @@ if __name__ == "__main__":
         radius = nx.radius(Gundirected)
 
         # Average shortest path length
-        averageShortestPath = nx.average_shortest_path_length(G)
+        averageShortestPath = nx.average_shortest_path_length(Gundirected)
     else:
         center = nx.center(G)
         eccentricity = nx.eccentricity(G)
@@ -39,6 +38,9 @@ if __name__ == "__main__":
 
         # Average shortest path length
         averageShortestPath = nx.average_shortest_path_length(G)
+
+    # Density
+    density = nx.density(G)
 
     # Transivity
     transivity = nx.transitivity(G)
@@ -60,7 +62,7 @@ if __name__ == "__main__":
 
     # Results
     message = f"Analysis complete!\nExecution time = {time.perf_counter() - start:.2f} second(s).\nThe graph is "
-    directed = "directed" if nx.is_directed(G) == True else "undirected"
+    directed = "directed" if nx.is_directed(G) else "undirected"
     message += directed
 
     if nx.is_directed(G):
@@ -78,28 +80,31 @@ if __name__ == "__main__":
     message += connected
     print(message)
 
+    print(f"Number of nodes = {G.number_of_nodes()}\nNumber of edges = {G.number_of_edges()}")
     print(
-        f"Center = {center}\ndiameter = {diameter}\nradius = {radius}\nAverage shortest path length = {averageShortestPath:.4f}\nTransivity = {transivity:.4f}\nClustering coefficient = {clusteringCoeff:.4f}")
+        f"Center = {center}\ndiameter = {diameter}\nradius = {radius}\nAverage shortest path length = {averageShortestPath:.4f}\nDensity = {density:.4f}\nTransivity = {transivity:.4f}\nClustering coefficient = {clusteringCoeff:.4f}")
 
     # Degree plots
     degrees = [i[1] for i in list(G.degree)]
     inDegrees = [i[1] for i in list(G.in_degree)]
     outDegrees = [i[1] for i in list(G.out_degree)]
 
-    # plt.figure(100)
     sns.displot(degrees)
     plt.title("Node degree distribution")
     plt.xlabel("Node degree")
 
-    # plt.figure(101)
     sns.displot(inDegrees)
     plt.title("Node in degree distribution")
     plt.xlabel("Node in degree")
 
-    # plt.figure(102)
     sns.displot(outDegrees)
     plt.title("Node out degree distribution")
     plt.xlabel("Node out degree")
+
+    sns.displot(eccentricity)
+    plt.title("Eccentiricy distribution")
+    plt.xlabel("Eccentricity")
+
     # Gather dictionaries in a list and sort them on values
     listOfDicts = [closenessCentrality, betweensCentrality, katzCentrality, eigenCentrality, pageRank, authorities,
                    hubs]
@@ -108,44 +113,24 @@ if __name__ == "__main__":
                  "Authorities", "Hubs"]
 
     listOfDicts = [{k: v for k, v in sorted(i.items(), key=lambda item: item[1], reverse=True)} for i in listOfDicts]
+
     # Scatterplots of the 20 nodes with the highest values in each dictionary
     for i in range(len(listOfDicts)):
-        dict = listOfDicts[i]
+        dictionary = listOfDicts[i]
         name = dictNames[i]
 
         j = 0
         limit = 20
         dictToPlot = {}
-        for k, v in dict.items():
+        for k, v in dictionary.items():
             dictToPlot[k] = v
             j += 1
             if j == limit:
                 break
 
-        plt.figure(i + 4)
+        plt.figure(i + 5)
         sns.scatterplot(x=dictToPlot.values(), y=dictToPlot.keys())
-        plt.title(name + f": {limit} nodes with highest value")
+        plt.title(name + f": {limit} nodes with the highest value")
 
-    # Authorities Hubs
-    # for i in range(3):
-    #     a = list(listOfDicts[6].keys())[0]
-    #     print(f"Authority number {i+1} :" + a + "\nPredecessors:")
-    #     for j in G.successors(a):
-    #         print(j)
-
-    # i = 0
-    # fet = {}
-    # for k, v in listOfDicts[3].items():
-    #     i += 1
-    #     fet[k] = v
-    #     if (i == 50):
-    #         break
-    # ax = plt.axes()
-    # sns.scatterplot(y=fet.keys(), x=fet.values())
-    # ax.set_title("fet")
-    # plt.show()
-
-    # Check components, clustering, clique, community
-debug = True
 plt.ioff()
 plt.show()
