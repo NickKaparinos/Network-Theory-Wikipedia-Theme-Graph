@@ -1,5 +1,5 @@
+## Network Theory: Wikipedia Theme Graph
 ## Aristotle University of Thessaloniki
-## Network-Theory-Project
 ## Nick Kaparinos
 ## 2021
 
